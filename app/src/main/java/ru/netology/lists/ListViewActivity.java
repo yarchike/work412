@@ -22,7 +22,10 @@ public class ListViewActivity extends AppCompatActivity {
     static final String KEY1 = "Key1";
     static final String KEY2 = "Key2";
     static final String DATAS = "DataS";
-    List<Map<String, String>> simpleAdapterContent = new ArrayList<>();
+
+     List<Map<String, String>> simpleAdapterContent = new ArrayList<>();
+
+
 
 
     @Override
@@ -31,18 +34,22 @@ public class ListViewActivity extends AppCompatActivity {
         setContentView(R.layout.activity_list_view);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
         final SharedPreferences sharedPref = getSharedPreferences("MyPref", MODE_PRIVATE);
-        SharedPreferences.Editor myEditor=sharedPref.edit();
+
+        SharedPreferences.Editor myEditor = sharedPref.edit();
         myEditor.putString(DATAS,getString(R.string.large_text));
         myEditor.apply();
 
-        SwipeRefreshLayout swipeLayout = findViewById(R.id.swiperefresh);
+        final SwipeRefreshLayout swipeLayout = findViewById(R.id.swiperefresh);
 
         ListView list = findViewById(R.id.list);
 
         simpleAdapterContent = prepareContent(sharedPref);
 
         final BaseAdapter listContentAdapter = createAdapter(simpleAdapterContent);
+
+        list.setAdapter(listContentAdapter);
 
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -56,15 +63,12 @@ public class ListViewActivity extends AppCompatActivity {
             public void onRefresh() {
                 simpleAdapterContent = prepareContent(sharedPref);
                 listContentAdapter.notifyDataSetChanged();
-
+                swipeLayout.setRefreshing(false);
 
             }
         });
 
 
-
-
-        list.setAdapter(listContentAdapter);
     }
 
     @NonNull
