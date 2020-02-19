@@ -23,9 +23,12 @@ public class ListViewActivity extends AppCompatActivity {
     static final String KEY2 = "Key2";
     static final String DATAS = "DataS";
 
-     List<Map<String, String>> simpleAdapterContent = new ArrayList<>();
-
-
+    List<Map<String, String>> simpleAdapterContent = new ArrayList<>();
+    ListView list;
+    SharedPreferences sharedPref;
+    SharedPreferences.Editor myEditor;
+    SwipeRefreshLayout swipeLayout;
+    BaseAdapter listContentAdapter;
 
 
     @Override
@@ -34,23 +37,33 @@ public class ListViewActivity extends AppCompatActivity {
         setContentView(R.layout.activity_list_view);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+//-------------------------------------------------------------------------------------------
+        sharedPref = getSharedPreferences("MyPref", MODE_PRIVATE);
+        myEditor = sharedPref.edit();
+        list = findViewById(R.id.list);
+        swipeLayout = findViewById(R.id.swiperefresh);
 
-        final SharedPreferences sharedPref = getSharedPreferences("MyPref", MODE_PRIVATE);
 
-        SharedPreferences.Editor myEditor = sharedPref.edit();
-        myEditor.putString(DATAS,getString(R.string.large_text));
+        myEditor.putString(DATAS, getString(R.string.large_text));
         myEditor.apply();
 
-        final SwipeRefreshLayout swipeLayout = findViewById(R.id.swiperefresh);
+        prepareContent();
 
-        ListView list = findViewById(R.id.list);
-
-        simpleAdapterContent = prepareContent(sharedPref);
-
-        final BaseAdapter listContentAdapter = createAdapter(simpleAdapterContent);
+        listContentAdapter = createAdapter(simpleAdapterContent);
 
         list.setAdapter(listContentAdapter);
 
+
+        swipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                simpleAdapterContent.clear();
+                prepareContent();
+                listContentAdapter.notifyDataSetChanged();
+                swipeLayout.setRefreshing(false);
+
+            }
+        });
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -58,16 +71,6 @@ public class ListViewActivity extends AppCompatActivity {
                 listContentAdapter.notifyDataSetChanged();
             }
         });
-        swipeLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                simpleAdapterContent = prepareContent(sharedPref);
-                listContentAdapter.notifyDataSetChanged();
-                swipeLayout.setRefreshing(false);
-
-            }
-        });
-
 
     }
 
@@ -77,15 +80,13 @@ public class ListViewActivity extends AppCompatActivity {
     }
 
     @NonNull
-    private List<Map<String, String>> prepareContent(SharedPreferences sharedPref) {
-        List<Map<String, String>> data = new ArrayList<>();
-        String[] arrayContent = sharedPref.getString(DATAS,"").split("\n\n");
+    private void prepareContent() {
+        String[] arrayContent = sharedPref.getString(DATAS, "").split("\n\n");
         for (int i = 0; i < arrayContent.length; i++) {
             Map<String, String> temp = new HashMap<>();
             temp.put(KEY1, arrayContent[i]);
             temp.put(KEY2, String.valueOf(arrayContent[i].length()));
-            data.add(temp);
+            simpleAdapterContent.add(temp);
         }
-        return data;
     }
 }
